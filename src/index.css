@@ -35,3 +35,12 @@ body {
 button {
   @apply cursor-pointer;
 }
+
+.loading-page {
+  @apply flex items-center justify-center w-full;
+  height: 100vh;
+}
+
+.loading-page img {
+  @apply h-12;
+}

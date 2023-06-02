@@ -1,6 +1,7 @@
 import { useContext } from 'react'
 import './index.css'
 import { Document, Dashboard } from './pages'
+import logo from '../src/assets/document.png'
 import { MainContext } from './context'
 
 const App = () => {
@@ -13,9 +14,10 @@ const App = () => {
           doc 
             ? <Document plugin={plugin} /> 
             : <Dashboard />
-          : <div>Loading Plugin...</div>
+          : <div className="loading-page">
+              <img src={logo} />
+            </div>
       }
-      
     </div>
   )
 }
