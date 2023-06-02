@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600&display=swap');
+* {
+    box-sizing: border-box;
+  }
+
+body {
+  @apply p-0 m-0 max-w-full font-open-sans w-full min-h-full bg-white;
+  background-size: 3rem 3rem;
+  background-image:
+  linear-gradient(to right, theme('colors.bg.400') 0.063rem, transparent 0.063rem),
+  linear-gradient(to bottom, theme('colors.bg.400') 0.063rem, transparent 0.063rem);
+}
+
+.row {
+  box-sizing: border-box;
+  @apply flex flex-row items-center justify-start w-full;
+}
+
+.sticky-pos {
+  @apply sticky top-0;
+}
+
+.col {
+  box-sizing: border-box;
+  @apply flex flex-col items-start justify-start w-full flex-grow;
+}
+
+.container {
+  @apply w-full flex flex-col;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background: radial-gradient(circle, theme('colors.fade.100') 0%, theme('colors.fade.200') 100%);
+}
+
+button {
+  @apply cursor-pointer;
+}
