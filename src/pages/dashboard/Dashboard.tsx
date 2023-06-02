@@ -6,9 +6,8 @@ import { fetchUrl, getFormData } from '../../utils/helpers';
 import axios from 'axios';
 import { controller } from '../../utils/contants';
 
-
 const Dashboard = () => {
-    const { setDocument } = useContext(MainContext);
+    const { base, setDocument } = useContext(MainContext);
     const [search, setSearch] = useState<string>('');
     const [files, setFiles] = useState<string[]>([]);
     const [loadingVal, setLoadingVal] = useState<number>(0);
@@ -20,7 +19,7 @@ const Dashboard = () => {
     // Load remote documents
     const fetchFiles = async () => {
         try {
-            const files = await axios.get('http://localhost:3001/files/xscdv');
+            const files = await axios.get(`http://localhost:3001/files/${base}`);
             setFiles(files.data.files);
         } catch (e) {
             console.log(e);
@@ -37,7 +36,7 @@ const Dashboard = () => {
         file.accept = '.doc,.docx,.ppt,.pptx,.txt,.pdf';
         file.click();
         file.onchange = async ({ target}: { target: any }) => {
-            const formData = getFormData(target.files[0]);
+            const formData = getFormData(target.files[0], base);
             const url = await fetchUrl(formData, setLoadingVal);
             nextPage(url)
         }
@@ -46,13 +45,13 @@ const Dashboard = () => {
         e.preventDefault();
         let file;
         file = e.dataTransfer.files[0];
-        const formData = getFormData(file);
+        const formData = getFormData(file, base);
         const url = await fetchUrl(formData);
         nextPage(url);
     }
 
     // Navigate
-    const nextPage = (url: string | undefined) => {
+    const nextPage = async (url: string | undefined) => {
         if (!url) return;
         setSearch(url);
         setDocument(url);
@@ -78,7 +77,7 @@ const Dashboard = () => {
     // Delte
     const onDelete = async (fileName: string) => {
         try {
-            await axios.delete(`http://localhost:3001/file/xscdv${fileName}`);
+            await axios.delete(`http://localhost:3001/file/${fileName}`);
             setFiles([...files.filter(x => x !== fileName)])
         } catch (e) {
             console.log(e);
@@ -100,7 +99,7 @@ const Dashboard = () => {
                 onClick={onClick}
             />
             <div className="file-container">
-                <h3>Recent Files</h3>
+                <h3>Recent Uploads</h3>
                 {
                     loadingVal !== 0 &&
                     <File
@@ -119,11 +118,11 @@ const Dashboard = () => {
                 {
                     files.map((f, index) => (
                         <File
-                        label={f}
-                        onClick={() => nextPage(`http://localhost:3001/file/xscdv${f}`)}
                         key={index}
+                        label={f.replace(base, '')}
                         onDelete={() => onDelete(f)}
-                        size={getFileSize(`http://localhost:3001/file/xscdv${f}`) ?? 0.0} 
+                        onClick={() => nextPage(`http://localhost:3001/file/${f}`)}
+                        size={getFileSize(`http://localhost:3001/file/${f}`) ?? 0.0} 
                         />
                     ))
                 }

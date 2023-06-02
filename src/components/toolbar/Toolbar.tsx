@@ -9,7 +9,7 @@ interface ToolbarRightProps {
   scale: number;
   activeColor: string;
   activeTool: ToolbarState;
-  onNewFile: () => void;
+  onBack: () => void;
   setActiveColor: (col: string) => void;
   selectActiveTool: (state: ToolbarState) => void;
 }
@@ -27,7 +27,7 @@ const ToolbarRight = (props: ToolbarRightProps) => {
     scale,
     activeTool,
     activeColor,
-    onNewFile,
+    onBack,
     setActiveColor,
     selectActiveTool,
   } = props;
@@ -56,12 +56,12 @@ const ToolbarRight = (props: ToolbarRightProps) => {
   return (
     <div className="toolbar-right">
       <div className="row">
-        <Icon icon="add_file" className="new-file-tool" onClick={onNewFile} />
         <div className="toolbar-page">
           <Icon onClick={() => updateTool('zoom-in-tool')} className="toolbar-icon" icon='zoomIn' />
           <span>{Math.round(scale * 100)}%</span>
           <Icon onClick={() => updateTool('zoom-out-tool')} className="toolbar-icon" icon='zoomOut' />
         </div>
+        <Icon icon="dismiss" className="back-icon" onClick={onBack} />
       </div>
       <div className="toolbar-tools">
         {

@@ -1,5 +1,5 @@
 import Dashboard from './dashboard/Dashboard';
-import Document from "./Document/Document";
+import Document from "./document/Document";
 
 export {
     Document,

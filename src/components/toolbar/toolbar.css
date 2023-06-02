@@ -4,8 +4,8 @@
 .toolbar-right {
     @apply fixed top-2 right-2 z-50 flex flex-col items-end;
 }
-.new-file-tool {
-    @apply bg-blue-600 rounded-md h-9 w-12 text-white mx-2 cursor-pointer border-[1px] border-solid border-blue-900;
+.back-icon {
+    @apply bg-gray-600 rounded-md h-9 w-9 p-1 text-white ml-2 cursor-pointer border-[1px] border-solid border-blue-900;
 }
 .toolbar-icon {
     @apply h-auto !w-7 cursor-pointer;

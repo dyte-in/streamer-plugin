@@ -67,9 +67,9 @@ const colorRgb = (activeColor: string): string => {
         return 'rgb(0,0,0)';
     }
 }
-const getFormData = (file: Blob) => {
+const getFormData = (file: Blob, base: string) => {
     const formData = new FormData();
-    formData.append('base', 'xscdv');
+    formData.append('base', base);
     formData.append("file", file);
     return formData;
 }

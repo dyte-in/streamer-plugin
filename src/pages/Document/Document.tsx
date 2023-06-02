@@ -10,25 +10,28 @@ import { color, fetchUrl, getFormData, throttle } from '../../utils/helpers';
 import { CursorPoints, ToolbarState } from '../../utils/types';
 import { options } from '../../utils/contants';
 import { MainContext } from '../../context';
+import DytePlugin from '@dytesdk/plugin-sdk';
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/legacy/build/pdf.worker.min.js',
   import.meta.url,
 ).toString();
 
-let PATH_COUNT = 0;
+let EL_COUNT = 0;
 
-export default function PDFDocument() {
-  const { setDocument, document: doc } = useContext(MainContext);
+interface DocumentProps {
+  plugin: DytePlugin,
+}
 
+export default function PDFDocument(props: DocumentProps) {
+  const { plugin } = props;
   const tool = useRef<ToolbarState>('none');
-  const selectedElements = useRef<any[]>([]);
+  const selectedElements = useRef<Set<string>>(new Set());
   const [docEl, docElUpdate, docElRef] = CanvasRef();
+  const { setDocument, doc, currentPage, setCurrentPage, userId, data } = useContext(MainContext);
 
   const [scale, setScale] = useState<number>(1);
   const [draw, setDraw] = useState<boolean>(false);
   const [pageCount, setPageCount] = useState<number>(0);
-  const [currentPage, setCurentPage] = useState<number>(0);
-  const [data, setData] = useState<{[key: number]: Node[]}>({});
   const [activeColor, setActiveColor] = useState<string>('black');
   const [activeTool, setActiveTool] = useState<ToolbarState>('none');
   const [dimensions, setDimensions] = useState<{x: number; y: number}>();
@@ -42,7 +45,10 @@ export default function PDFDocument() {
     const x = docEl.current.clientWidth;
     const y = docEl.current.clientHeight;
     if (x === 0 && y === 0) return;
-    if (!dimensions) setDimensions({ x, y })
+    if (!dimensions) {
+      setDimensions({ x, y });
+      loadRemoteAnnotations();
+    }
 
     // add styles
     docEl.current.classList.add('max-height-canvas');
@@ -59,12 +65,13 @@ export default function PDFDocument() {
     if (data[currentPage]) {
       const svg = document.getElementById('svg');
       if (!svg) return;
-      data[currentPage].forEach((d) => {
-        d.addEventListener('mousemove', () => {
-          selectElement(d);
+      svg.innerHTML = data[currentPage];
+      const nodes = svg.childNodes;
+      nodes.forEach((n) => {
+        n.addEventListener('mousemove', () => {
+          selectElement(n);
         })
       })
-      if (data[currentPage]) svg.append(...data[currentPage]);
     }
   }, [docElUpdate])
 
@@ -83,30 +90,56 @@ export default function PDFDocument() {
     }
   }, [scale])
 
-  // Helper Methods
-  const updateData = () => {
-    const nodes = (document.getElementById('svg')?.childNodes ?? []) as Node[];
-    setData({ ...data, [currentPage]: nodes })
+  // remote annotations
+  const loadRemoteAnnotations = () => {
+    plugin.addListener('remote-erase-all', async () => {
+      eraseAll(true);
+    })
+    plugin.addListener('remote-el', ({ el, user, id }) => {
+      if (user === userId) return;
+      const svg = document.getElementById('svg');
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.innerHTML = el;
+      if (!svg) return;
+      svg.appendChild(g);
+      el = document.getElementById(id);
+      el.addEventListener('mousemove', () => {
+        selectElement(el);
+      })
+    })
+    plugin.addListener('remote-erase', ({ idList }) => {
+      idList.map((id: string) => {
+        const doc = document.getElementById(id);
+        const p = doc?.parentElement;
+        if (p && p.nodeName === 'g') {
+            p?.remove();
+        } else {
+          doc?.remove();
+        }
+      })
+    })
   }
+
+  // Helper Methods
   const handleNext = () => {
-    updateData();
-    setCurentPage(() => Math.min(currentPage+1, pageCount))
+    setCurrentPage(Math.min(currentPage+1, pageCount))
     setScale(1);
-      if (!docEl.current) return;
-      updateDocPosition();
-      docEl.current.classList.add('min-height-canvas');
+    if (!docEl.current) return;
+    updateDocPosition();
+    docEl.current.classList.add('min-height-canvas');
   }
   const handlePrev = () => {
-    updateData();
-    setCurentPage(() => Math.max(currentPage-1, 1))
+    setCurrentPage(Math.max(currentPage-1, 1))
     setScale(1);
-      if (!docEl.current) return;
-      updateDocPosition();
-      docEl.current.classList.add('min-height-canvas');
+    if (!docEl.current) return;
+    updateDocPosition();
+    docEl.current.classList.add('min-height-canvas');
   }
   const onDocumentLoadSuccess = ({ numPages }: {numPages: number}) => {
     setPageCount(numPages);
-    if (numPages > 0) setCurentPage(1);
+    if (numPages > 0) {
+      if (currentPage === 0) setCurrentPage(1);
+    }
   }
   const selectActiveTool = (state: ToolbarState) => {
     tool.current = state;
@@ -185,6 +218,11 @@ export default function PDFDocument() {
       cont.style.justifyContent = 'start';
     }
   }
+  const updateAnnotationStore = async () => {
+    const svg = document.getElementById('svg');
+    if (!svg) return;
+    await plugin.stores.get('doc').set('annotations', { ...data, [currentPage]: svg.innerHTML });
+  }
 
   // Cursor Listeners
   const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
@@ -228,7 +266,7 @@ export default function PDFDocument() {
     path.onmouseenter = () => {
       selectElement(path);
     }
-    path.id = `path-${PATH_COUNT}`;
+    path.setAttribute('id',`${userId}-${EL_COUNT}`);
     if (activeTool === 'drawing-tool-pencil') {
       path.style.stroke = color(activeColor);
       path.style.strokeWidth = '4';
@@ -238,20 +276,17 @@ export default function PDFDocument() {
       path.style.strokeWidth = '12';
       path.style.fill = 'none';
     }
-    
-  
     if (!svg || !path) return;
     let point = svg.createSVGPoint() as SVGPoint;
     const { xS, yS} = getScale();
     point.x = x / xS;
     point.y = y / yS;
-    
     path.setAttribute('d', 'M'+point.x+','+point.y+'L'+point.x+','+point.y);
     svg.appendChild(path);
   };
   const updatePath = (x: number, y: number) => {
     const svg = document.getElementById('svg') as any;
-    const path = document.getElementById(`path-${PATH_COUNT}`) as SVGPathElement | null;
+    const path = document.getElementById(`${userId}-${EL_COUNT}`) as SVGPathElement | null;
     if (!svg || !path) return;
     let point = svg.createSVGPoint() as SVGPoint;
     const { xS, yS} = getScale();
@@ -260,14 +295,20 @@ export default function PDFDocument() {
     path.setAttribute('d', path.getAttribute('d')+' '+point.x+','+point.y);
   };
   const endPath = () => {
-    PATH_COUNT++;
+    const el = document.getElementById(`${userId}-${EL_COUNT}`);
+    plugin.emit('remote-el', { el: el?.outerHTML, user: userId, id: el?.id });
+    EL_COUNT++;
+    updateAnnotationStore();
   };
 
   // Erase & Erase All
-  const eraseAll = () => {
+  const eraseAll = (remote: boolean = false) => {
     const svg = document.getElementById('svg');
     if (!svg) return;
     svg.innerHTML = '';
+    if (remote) return;
+    plugin.emit('remote-erase-all');
+    updateAnnotationStore();
   }
 
   // Rect
@@ -276,6 +317,8 @@ export default function PDFDocument() {
     const {xS, yS} = getScale();
     const svg = document.getElementById('svg');
     const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('id', `${userId}-${EL_COUNT}`);
+    EL_COUNT++;
     rect.setAttribute('rx', '8')
     rect.onmouseenter = () => {
       selectElement(rect);
@@ -291,7 +334,9 @@ export default function PDFDocument() {
     rect.style.stroke = color(activeColor);
     rect.style.strokeWidth = '4';
     rect.style.fill = 'none';
+    plugin.emit('remote-el', { el: rect.outerHTML, user: userId, id: rect.id });
     svg?.appendChild(rect);
+    updateAnnotationStore();
   };
 
   // Text
@@ -321,7 +366,6 @@ export default function PDFDocument() {
     if (!docEl.current) return;
     const xD = docEl.current.clientWidth;
     const yD = docEl.current.clientHeight;
-  
     elem.onkeyup = (e) => {
       if (e.key === 'Backspace') {
         if (
@@ -361,11 +405,10 @@ export default function PDFDocument() {
     }
 
     const {xS, yS} = getScale();
-
-    const t = parseNum(elem.style.top) / xS;
-    const l = parseNum(elem.style.left) /yS;
     const w = elem.clientWidth / xS;
     const h = elem.clientHeight / yS;
+    const t = parseNum(elem.style.top) / xS;
+    const l = parseNum(elem.style.left) /yS;
 
     const svg = document.getElementById('svg');
     const text = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
@@ -377,26 +420,33 @@ export default function PDFDocument() {
     text.setAttribute('y', (t + 6).toString());
     text.setAttribute('width', w.toString());
     text.setAttribute('height', h.toString());
+    text.setAttribute('id', `${userId}-${EL_COUNT}`);
+
+    EL_COUNT++;
     text.innerHTML = `<div style="width:${w}px; height:${h}px; color:${color(activeColor)}">${elem.value}</div>`;
     text.style.fontSize = '14px';
     text.style.fontFamily = 'Open Sans';
-
+    plugin.emit('remote-el', { el: text.outerHTML, user: userId, id: text.id });
     svg?.appendChild(text);
     elem.style.display = 'none';
+    updateAnnotationStore();
   }
 
   // Erase
   const selectElement = (e: any) => {
     if (tool.current !== 'drawing-tool-erase') return;
     e.style.opacity = '0.4';
-    selectedElements.current = selectedElements.current?.filter(x => x !== e);
-    selectedElements.current.push(e);
+    selectedElements.current.add(e.id);
   }
   const eraseElements = () => {
     selectedElements.current.forEach((e) => {
-      e.remove();
+      const doc = document.getElementById(e);
+      doc?.remove();
     })
-    selectedElements.current = [];
+    const val = Array.from(selectedElements.current);
+    plugin.emit('remote-erase', { idList: val });
+    selectedElements.current = new Set();
+    updateAnnotationStore();
   }
 
   // Zoom
@@ -447,17 +497,9 @@ export default function PDFDocument() {
     img.src = image64;
   }
 
-  // New File
-  const HandleNewFile = () => {
-    const file = document.createElement('input')
-    file.type = 'file';
-    file.accept = '.doc,.docx,.ppt,.pptx,.txt,.pdf';
-    file.click();
-    file.onchange = async ({ target}: { target: any }) => {
-        const formData = getFormData(target.files[0]);
-        const url = await fetchUrl(formData);
-        setDocument(url)
-    }
+  // Go Back
+  const HandleBack = () => {
+    setDocument('');
   }
 
   return (
@@ -496,7 +538,7 @@ export default function PDFDocument() {
         scale={scale}
         activeColor={activeColor}
         activeTool={activeTool}
-        onNewFile={HandleNewFile}
+        onBack={HandleBack}
         setActiveColor={selectColor}
         selectActiveTool={selectActiveTool}
       />
