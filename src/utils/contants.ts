@@ -19,3 +19,14 @@ export const tools: ToolData[] = [
 ]
 
 export const controller = new AbortController();
+
+export const dashboardMessages = {
+    'success': 'No Recent Files. Files are retained only for the duration of this session.',
+    'error': 'An Error occured. Could not fetch files.',
+}
+
+export const errorMessages = {
+    'cors': 'This URL doesn\'t allow access to third party applications. Please try another URL.',
+    'upload': 'There was an unexpected error while uploading your file.',
+    'delete': 'Your file could not be deleted. Please try again later.'
+}

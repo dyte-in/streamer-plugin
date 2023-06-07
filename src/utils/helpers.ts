@@ -69,18 +69,17 @@ const colorRgb = (activeColor: string): string => {
 }
 const getFormData = (file: Blob, base: string) => {
     const formData = new FormData();
-    formData.append('base', base);
-    formData.append("file", file);
+    formData.append("file", file, `${base}-${file.name ?? (Math.random()*10000).toFixed(0)}`);
     return formData;
 }
-const fetchUrl = async (formData: FormData, setLoadingVal?: any) => {
+const fetchUrl = async (formData: FormData, authToken: string, setLoadingVal?: any) => {
     try {
         const result = await axios({
             method: "post",
             signal: controller.signal,
-            url: `http://localhost:3001/upload`,
+            url: `${import.meta.env.VITE_API_BASE}/upload`,
             data: formData,
-            // headers: {"Authorization": `Bearer ${plugin.authToken}`},
+            headers: {"Authorization": `Bearer ${authToken}`},
             onUploadProgress: () => {
                 if (setLoadingVal) setLoadingVal(60);
             }
@@ -88,7 +87,7 @@ const fetchUrl = async (formData: FormData, setLoadingVal?: any) => {
         if(result?.data?.link)
         {
             if (setLoadingVal) setLoadingVal(100);
-            return `http://localhost:3001/file/${result.data.link}`;
+            return `${import.meta.env.VITE_API_BASE}/file/${result.data.link}`;
         }
     } catch (e: any) {
        throw new Error(e.message);

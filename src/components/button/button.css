@@ -27,3 +27,6 @@
 .danger {
     @apply bg-red-500 text-white;
 }
+.button-disabled {
+    @apply opacity-60;
+}

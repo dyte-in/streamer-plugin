@@ -17,3 +17,6 @@
 .file-helper-text {
     @apply font-thin text-[#646464] my-1 text-sm mb-2 text-center mx-2;
 }
+.file-input-disabled {
+    @apply opacity-60;
+}

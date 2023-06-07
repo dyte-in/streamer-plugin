@@ -21,7 +21,7 @@ const Button = (props: ButtonProps) => {
 
   return (
     <button
-        className={`button ${variant}`}
+        className={`button ${variant} ${disabled ? 'button-disabled': ''}`}
         onClick={onClick}
         disabled={disabled}
     >

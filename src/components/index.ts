@@ -6,6 +6,7 @@ import Input from './input/Input';
 import { ToolbarRight, ToolbarLeft } from './toolbar/Toolbar';
 import FileInput from './fileInput/FileInput';
 import Loader from './loader/Loader';
+import ErrorModal from './errorModal/ErrorModal';
 
 export {
     Header,
@@ -17,4 +18,5 @@ export {
     ToolbarLeft,
     FileInput,
     Loader,
+    ErrorModal,
 };

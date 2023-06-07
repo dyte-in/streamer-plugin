@@ -80,7 +80,7 @@ export default function PDFDocument(props: DocumentProps) {
     if (activeTool === 'drawing-tool-erase-all') eraseAll();
     if (activeTool === 'zoom-in-tool') zoomIn();
     if (activeTool === 'zoom-out-tool') zoomOut();
-    if (activeTool === 'export-tool') exportDoc();
+    if (activeTool === 'export-tool') exportPage();
   }, [activeTool, draw])
 
   // adjust styles according to scale
@@ -465,11 +465,7 @@ export default function PDFDocument(props: DocumentProps) {
   };
 
   // Export
-  const exportDoc = () => {
-    exportPage();
-  }
   const exportPage = () => {
-    // logic to export page
     const doc = docEl.current;
     const svg = document.getElementById('svg');
     if (!doc || !svg) return;

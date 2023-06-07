@@ -5,12 +5,13 @@ import logo from '../../assets/document.png';
 
 interface HeaderProps {
   search: string;
+  disabled: boolean;
   updateSearch: ({ target }: { target: any }) => void;
   onUpload: () => void;
 }
 
 const Header = (props: HeaderProps) => {
-  const { search, updateSearch, onUpload } = props;
+  const { search, updateSearch, onUpload, disabled } = props;
 
   return (
     <div className="header-container">
@@ -23,7 +24,7 @@ const Header = (props: HeaderProps) => {
       onKeyDown={(e: any) => {
         if (e.key === 'Enter') onUpload();
       }}/>
-    <Button onClick={onUpload} label='Upload' variant='secondary' />
+    <Button disabled={disabled} onClick={onUpload} label='Upload' variant='secondary' />
     </div>
   )
 }

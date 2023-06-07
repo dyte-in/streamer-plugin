@@ -1,16 +1,19 @@
 import './dashboard.css';
 import { useContext, useEffect, useState } from 'react';
-import { FileInput, Header, File } from '../../components'
+import { FileInput, Header, File, ErrorModal } from '../../components'
 import { MainContext } from '../../context';
 import { fetchUrl, getFormData } from '../../utils/helpers';
 import axios from 'axios';
-import { controller } from '../../utils/contants';
+import { controller, dashboardMessages, errorMessages } from '../../utils/contants';
 
 const Dashboard = () => {
-    const { base, setDocument } = useContext(MainContext);
+    const { plugin, base, setDocument } = useContext(MainContext);
     const [search, setSearch] = useState<string>('');
     const [files, setFiles] = useState<string[]>([]);
+    const [status, setStatus] = useState<string>(dashboardMessages.success);
     const [loadingVal, setLoadingVal] = useState<number>(0);
+    const [disabled, setDisabled] = useState<boolean>(false);
+    const [error, setError] = useState<string>('');
 
     useEffect(() => {
         fetchFiles();
@@ -19,35 +22,63 @@ const Dashboard = () => {
     // Load remote documents
     const fetchFiles = async () => {
         try {
-            const files = await axios.get(`http://localhost:3001/files/${base}`);
+            const files = await axios.get(`${import.meta.env.VITE_API_BASE}/files/${base}`);
             setFiles(files.data.files);
         } catch (e) {
-            console.log(e);
+            setStatus(dashboardMessages.error);
         }
     };
 
     // Load document
-    const onUpload = () => {
-        nextPage(search);
+    const onUpload = async () => {
+        try {
+            setDisabled(true);
+            let blob = await axios.get(search).then(r => new Blob([r.data]));
+            const formData = getFormData(blob, base);
+            const url = await fetchUrl(formData, plugin.authToken, setLoadingVal);
+            nextPage(url)
+        } catch (e: any) {
+            if (e.code === 'ERR_NETWORK') setError(errorMessages.cors)
+            else setError(errorMessages.upload)
+            setSearch('');
+            setLoadingVal(0);
+            setDisabled(false);
+        }
     }
     const onClick = () => {
+        setDisabled(true);
         const file = document.createElement('input')
         file.type = 'file';
         file.accept = '.doc,.docx,.ppt,.pptx,.txt,.pdf';
         file.click();
         file.onchange = async ({ target}: { target: any }) => {
             const formData = getFormData(target.files[0], base);
-            const url = await fetchUrl(formData, setLoadingVal);
-            nextPage(url)
+            try {
+                const url = await fetchUrl(formData, plugin.authToken, setLoadingVal);
+                nextPage(url)
+            } catch (e) {
+                setSearch('');
+                setDisabled(false);
+                setLoadingVal(0);
+                setError(errorMessages.upload)
+            }
         }
     }
     const onDrop = async (e: any) => {
+        setDisabled(true);
         e.preventDefault();
         let file;
         file = e.dataTransfer.files[0];
         const formData = getFormData(file, base);
-        const url = await fetchUrl(formData);
-        nextPage(url);
+        try {
+            const url = await fetchUrl(formData, plugin.authToken);
+            nextPage(url)
+        } catch (e) {
+            setSearch('');
+            setLoadingVal(0);
+            setError(errorMessages.upload)
+            setDisabled(false);
+        }
     }
 
     // Navigate
@@ -55,6 +86,7 @@ const Dashboard = () => {
         if (!url) return;
         setSearch(url);
         setDocument(url);
+        setDisabled(false);
     }
 
     // Helper functions
@@ -74,13 +106,15 @@ const Dashboard = () => {
         return 0;
     }
 
-    // Delte
+    // Delete
     const onDelete = async (fileName: string) => {
         try {
-            await axios.delete(`http://localhost:3001/file/${fileName}`);
+            await axios.delete(`${import.meta.env.VITE_API_BASE}/file/${fileName}`, {
+                headers: {"Authorization": `Bearer ${plugin.authToken}`},
+            });
             setFiles([...files.filter(x => x !== fileName)])
-        } catch (e) {
-            console.log(e);
+        } catch (e: any) {
+            setError(e.message ?? errorMessages.delete);
         }
     }
     const onDismiss = () => {
@@ -89,12 +123,22 @@ const Dashboard = () => {
 
     return (
         <div className="dashboard-container">
+            {
+                error && (
+                <ErrorModal
+                    onClose={() => {setError('')}}
+                    message={error}
+                />
+                )
+            }
             <Header
                 search={search}
                 updateSearch={updateSearch}
                 onUpload={onUpload}
+                disabled={disabled}
             />
             <FileInput
+                disabled={disabled}
                 onDrop={onDrop} 
                 onClick={onClick}
             />
@@ -112,17 +156,17 @@ const Dashboard = () => {
                 {
                     ((!loadingVal || loadingVal === 0) && files.length < 1)
                     && <div className="empty">
-                        No Recent Files. Files are retained only for the duration of this session.
+                       {status}
                     </div>
                 }
                 {
                     files.map((f, index) => (
                         <File
                         key={index}
-                        label={f.replace(base, '')}
+                        label={f.replace(`${base}-`, '')}
                         onDelete={() => onDelete(f)}
-                        onClick={() => nextPage(`http://localhost:3001/file/${f}`)}
-                        size={getFileSize(`http://localhost:3001/file/${f}`) ?? 0.0} 
+                        onClick={() => nextPage(`${import.meta.env.VITE_API_BASE}/file/${f}`)}
+                        size={getFileSize(`${import.meta.env.VITE_API_BASE}/file/${f}`) ?? 0.0} 
                         />
                     ))
                 }
