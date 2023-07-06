@@ -1,30 +1,19 @@
+import React from 'react'
 import './header.css';
+import logo from '../../assets/logo.png';
 import Button from '../button/Button';
 import Input from '../input/Input';
-import logo from '../../assets/document.png';
 
-interface HeaderProps {
-  search: string;
-  disabled: boolean;
-  updateSearch: ({ target }: { target: any }) => void;
-  onUpload: () => void;
-}
-
-const Header = (props: HeaderProps) => {
-  const { search, updateSearch, onUpload, disabled } = props;
-
+const Header = () => {
   return (
-    <div className="header-container">
-    <img src={logo} className="header-logo" />
-    <Input
-      placeholder='Paste a link to your PDF document'
-      icon='search'
-      value={search}
-      onChange={updateSearch}
-      onKeyDown={(e: any) => {
-        if (e.key === 'Enter') onUpload();
-      }}/>
-    <Button disabled={disabled} onClick={onUpload} label='Upload' variant='secondary' />
+    <div className="header">
+        <img src={logo} />
+        <Input placeholder='Paste a link to your video here' />
+        <Button
+            onClick={()=>{}}
+            icon='search'
+            variant='primary'
+        />
     </div>
   )
 }

@@ -1,0 +1,10 @@
+
+.player {
+    @apply w-full h-full m-0 bg-zinc-950;
+    height: 100vh;
+}
+.overlay {
+    @apply fixed top-0 left-0 z-50;
+    height: 90%;
+    width: 100vw;
+}

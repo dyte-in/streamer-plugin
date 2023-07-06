@@ -1,0 +1,17 @@
+.modal {
+    @apply z-50 fixed bg-slate-100 p-2 rounded-md text-sm text-gray-600 flex flex-col items-center justify-center;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.modal p {
+    @apply m-1 text-gray-500 text-center;
+}
+.modal button {
+    @apply mt-1 w-full border-none p-2 bg-blue-600 rounded-sm text-white;
+}
+
+.vimeo, .youtube {
+    @apply pointer-events-none;
+}

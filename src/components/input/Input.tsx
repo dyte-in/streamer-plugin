@@ -24,6 +24,7 @@ const Input = (props: InputProps) => {
   return (
     <div className="input-container">
     {icon && <Icon className="input-icon" icon={icon} />}
+    {!icon && <span></span>}
     <input
         type='text'
         placeholder={placeholder}

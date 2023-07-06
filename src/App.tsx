@@ -1,22 +1,22 @@
 import { useContext } from 'react'
 import './index.css'
-import { Document, Dashboard } from './pages'
-import logo from '../src/assets/document.png'
+import logo from '../src/assets/logo.png'
 import { MainContext } from './context'
+import Dashboard from './pages/dashboard/Dashboard'
+import Player from './pages/player/Player'
 
 const App = () => {
-  const { doc, plugin } = useContext(MainContext);
+  const { plugin, activePlayer } = useContext(MainContext);
 
   return (
     <div className='container'>
       {
-        plugin ? 
-          doc 
-            ? <Document plugin={plugin} /> 
-            : <Dashboard />
+        plugin
+          ? activePlayer ? <Player /> : <Dashboard />
           : <div className="loading-page">
-              <img src={logo} />
-            </div>
+            <img src={logo} />
+            <p>Streamer</p>
+          </div>
       }
     </div>
   )

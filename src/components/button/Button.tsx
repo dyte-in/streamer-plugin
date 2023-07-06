@@ -4,7 +4,7 @@ import { Icon } from '..';
 
 interface ButtonProps {
     variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'warning';
-    label: string;
+    label?: string;
     onClick?: (...args: any) => void;
     disabled?: boolean;
     icon?: keyof typeof iconPack;
@@ -28,8 +28,10 @@ const Button = (props: ButtonProps) => {
         {
             icon &&  <Icon className="button-icon" icon={icon} />
         }
-   
-    <span>{label}</span>
+        {
+            label &&  <span>{label}</span>
+        }
+        
   </button>
   )
 }
@@ -39,6 +41,7 @@ export default Button
 Button.defaultProps = {
     icon: undefined,
     onClick: () => {},
+    label: undefined,
     disabled: false,
     variant: 'primary'
 }

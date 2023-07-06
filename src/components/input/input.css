@@ -1,9 +1,11 @@
 .input-container {
-    @apply box-border flex flex-row flex-grow items-center justify-start p-1 ml-4 mr-2 h-fit border-gray-300 rounded-md bg-[#DCE5ED];
+    @apply box-border flex flex-row items-center justify-start p-1 h-fit border-gray-300 rounded-md bg-slate-200;
+    width: 50%;
+    min-width: 200px;
     
 }
 .input-container input {
-    @apply m-0 p-0 text-gray-900 bg-[#DCE5ED] border-none outline-none text-sm flex-grow font-open-sans;
+    @apply m-0 p-0 text-gray-900 bg-slate-200 border-none outline-none text-sm flex-grow font-open-sans py-1;
     min-width: 50px;
 }
 

@@ -1,15 +1,26 @@
-.dashboard-container {
-    @apply flex flex-col items-center justify-start overflow-x-hidden overflow-y-auto pb-6;
+.dashboard-content {
+    @apply flex-1 flex flex-col items-center justify-end w-full h-full;
     min-height: 100vh;
-    height: 100vh;
-    width: 100vw;
+    box-sizing: border-box;
 }
-
-.file-container {
-    @apply flex flex-col;
-    width:70%;
+.dashboard-flex {
+    @apply flex-1 flex flex-col items-center justify-center w-full;
 }
-
-.empty {
-    @apply w-full text-center text-gray-500;
+.dashboard-flex img {
+    @apply h-12;
+}
+.dashboard-flex span {
+    @apply flex flex-row items-center text-2xl mb-3 font-medium text-slate-600 w-full justify-center;
+}
+.dashboard-content h3 {
+    @apply m-0 text-lg text-zinc-400 font-normal text-center;
+}
+.dashboard-content p {
+    @apply m-0 p-1 text-base text-zinc-400 mt-8 font-thin;
+}
+.icons {
+    @apply flex flex-row items-center justify-center flex-wrap;
+}
+.icons img {
+    @apply my-4 h-7 mx-3;
 }
