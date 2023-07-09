@@ -1,0 +1,47 @@
+.controls {
+    @apply fixed bottom-0 left-0 hidden flex-row items-center justify-start p-2 box-border text-xs w-full bg-zinc-900 opacity-95 text-white;
+    z-index: 100;
+}
+.controls p {
+    @apply m-0 p-0;
+}
+.controls button {
+    @apply outline-none border-none bg-none;
+}
+.control-icon {
+    @apply h-8 w-8 cursor-pointer;
+}
+.control-time {
+    @apply mr-2 text-slate-200;
+}
+.range-control {
+    @apply flex grow h-1 bg-zinc-700 rounded-lg mx-2 bg-no-repeat;
+    vertical-align: middle;
+    font-size: 1em;
+    -webkit-appearance: none;
+    background-image: linear-gradient(theme('colors.gray.200'), theme('colors.gray.200'));
+    background-size: 0% 100%;
+}
+.range-control:focus {
+    outline: none;
+}
+.range-control::-webkit-slider-runnable-track {
+    -webkit-appearance: none;
+    @apply shadow-none border-none bg-none;
+}
+.range-control::-webkit-slider-thumb  {
+    @apply h-3 w-3 rounded-lg;
+    @apply bg-gray-200;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+}
+.volume-manager {
+    @apply flex flex-row items-center;
+}
+.volume-control {
+    @apply !hidden w-16;
+}
+.volume-manager:hover .volume-control {
+    @apply !flex;
+}

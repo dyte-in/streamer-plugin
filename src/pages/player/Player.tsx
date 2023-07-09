@@ -5,8 +5,9 @@ import ReactPlayer from 'react-player';
 import { DyteStore } from '@dytesdk/plugin-sdk';
 import { timeDelta } from '../../utils/helpers';
 import Modal from '../../components/modal/Modal';
+import Controls from '../../components/controls/Controls';
 
-interface PlayerConfig {
+export interface PlayerConfig {
     state: 'idle' | 'playing' | 'paused';
     played: number;
     loaded: number;
@@ -23,14 +24,18 @@ const initialConfig: PlayerConfig = {
 }
 
 const Player = () => {
-    const { plugin, activePlayer, link} = useContext(MainContext);
+    const { plugin, setLink, activePlayer, link, setActivePlayer } = useContext(MainContext);
     const playerEl = useRef<ReactPlayer>(null);
     const [config, setConfig] = useState<PlayerConfig>(initialConfig);
+    const [volume, setVolume] = useState<number>(1);
     const [started, setStarted] = useState<boolean>(false);
     const [loaded, setLoaded] = useState<boolean>(false);
 
+    // handle remote controls
     useEffect(() => {
         const store: DyteStore = plugin.stores.create('player-store');
+        const remoteConfig = store.get('state');
+        if (remoteConfig) setConfig(remoteConfig);
         store.subscribe('state', ({state}) => {
             setConfig({...config, ...state });
             if (started) {
@@ -43,17 +48,38 @@ const Player = () => {
             store.unsubscribe('state');
         }
     }, [started])
+    const manageSeek = (data: PlayerConfig, s = false, remote = true) => {
+        if (!playerEl?.current) return;
+        const fraction = (timeDelta(data.playedSeconds, data.lastUpdated))/playerEl.current.getDuration();
+        if (data.state === 'playing') {
+            playerEl.current.seekTo(parseFloat(fraction.toString()));
+            if (started || s) playVideo(remote);
+        }
+        if (data.state === 'paused')  {
+            playerEl.current.seekTo(parseFloat(data.played.toString()));
+            if (started || s) pauseVideo(remote);
+        }
+    }
 
+    // handle first play
+    const handleFirstClick = () => {
+        if (activePlayer === 'file') playerEl.current?.getInternalPlayer().play();
+        if (activePlayer === 'vimeo') playerEl.current?.getInternalPlayer().play();
+    }
     const handleOnPlay = async () => {
-        console.log('handle on play triggered...')
         const store = plugin.stores.get('player-store');
         // if not started
         if (!started) { 
             setStarted(true);
             // app's first action
             if (config.state === 'idle') {
-                console.log('apps first action')
-                await store.set('state', {...config, lastUpdated: +new Date(), state: 'playing'});
+                const newConfig: PlayerConfig = {
+                    ...config,
+                    lastUpdated: +new Date(),
+                    state: 'playing'
+                }
+                await store.set('state', newConfig);
+                setConfig(newConfig);
             } 
             // joining watch party
             manageSeek(config, true);
@@ -61,7 +87,9 @@ const Player = () => {
         } 
     }
 
+    // update config
     const handleOnProgress = (s: any) => {
+       if (!started) return;
         setConfig({
             ...config,
             loaded: s.loaded,
@@ -71,6 +99,7 @@ const Player = () => {
         })
     }
 
+    // controls
     const playVideo = async (remote: boolean = false) => {
         const p = playerEl.current?.getInternalPlayer();
 
@@ -80,6 +109,11 @@ const Player = () => {
         if (remote) return;
         const store = plugin.stores.get('player-store');
         await store.set('state', {...config, lastUpdated: +new Date(), state: 'playing'});
+        setConfig({
+            ...config,
+            lastUpdated: +new Date(),
+            state: 'playing',
+        })
     }
     const pauseVideo = async (remote: boolean = false) => {
         const p = playerEl.current?.getInternalPlayer();
@@ -89,49 +123,90 @@ const Player = () => {
         if (remote) return;
         const store = plugin.stores.get('player-store');
         await store.set('state', {...config, lastUpdated: +new Date(), state: 'paused'});
+        setConfig({
+            ...config,
+            lastUpdated: +new Date(),
+            state: 'paused',
+        })
     }
-
-    const handleFirstClick = () => {
-        console.log('here....')
-        if (activePlayer === 'file') playerEl.current?.getInternalPlayer().play();
-        if (activePlayer === 'vimeo') playerEl.current?.getInternalPlayer().play();
+    const onSeekDown = (e: any) => { 
+        console.log('seek started...');
     }
-
-    const manageSeek = (data: PlayerConfig, s = false) => {
-        console.log(data);
-        if (!playerEl?.current) return;
-        const fraction = (timeDelta(data.playedSeconds, data.lastUpdated))/playerEl.current.getDuration();
-        if (data.state === 'playing') {
-            playerEl.current.seekTo(parseFloat(fraction.toString()));
-            console.log(started || s);
-            if (started || s) playVideo(true);
-        }
-        if (data.state === 'paused')  {
-            console.log(started || s);
-            playerEl.current.seekTo(parseFloat(data.played.toString()));
-            if (started || s) pauseVideo(true);
-        }
+    const onSeekChange = (e: any) => {
+        const duration = playerEl?.current?.getDuration() ?? 1;
+        setConfig((c) => ({ 
+            ...c,
+            playedSeconds: e.target.value * duration,
+            played: parseFloat(e.target.value),
+            lastUpdated: +new Date(),
+        }));
+        playerEl?.current?.seekTo(parseFloat(e.target.value));
     }
+    const onSeekUp = (e: any) => { 
+        const duration = playerEl?.current?.getDuration() ?? 1;
+        setConfig((c) => ({ 
+            ...c,
+            playedSeconds: e.target.value * duration,
+            played: parseFloat(e.target.value),
+            lastUpdated: +new Date(),
+        }));
+        manageSeek(
+            {
+                ...config,
+                playedSeconds: e.target.value * duration,
+                played: parseFloat(e.target.value),
+                lastUpdated: +new Date(),
+            },
+            started,
+            false,
+        )
+    }
+    const togglePlayer = () => {
+        if (config.state === 'playing') pauseVideo();
+        if (config.state === 'paused') playVideo();
+    }
+    const handleVolume = (e: any) => {
+        setVolume(e.target.value)
+    }
+    const goBack = async () => {
+        setLink('');
+        setConfig(initialConfig);
+        setStarted(false);
+        setActivePlayer(undefined);
+        await plugin.stores.get('player-store').set('url', '');
+        await plugin.stores.get('player-store').set('state', undefined);
+        await plugin.stores.get('player-store').set('activePlayer', 'none');
+    }
+    
+    // TODO: errors
+    const handleError = (e: any) => {
+        console.log(e);
+    }
+    // TODO: catch window unhandled rejections
 
     
     return (
         <div className="player">
+            {/* player */}
             <ReactPlayer
                 width='100%'
-                height='90%'
+                height='100%'
                 id="test"
                 url={link}
                 muted={false}
-                volume={0.8}
+                volume={volume}
                 ref={playerEl}
                 onProgress={handleOnProgress}
                 onPlay={handleOnPlay}
                 onDuration={() => {
                     setLoaded(true);
                 }}
+                onError={handleError}
                 controls={false}
             />
-            {started && <div className='overlay'></div>}
+            {/* disable interactions with the player */}
+            {started && <div className='overlay' onClick={togglePlayer}></div>}
+            {/* modal to start or join the watchparty */}
             {
                 !started && loaded && (
                     <Modal
@@ -143,9 +218,23 @@ const Player = () => {
                     />
                 )
             }
-            {started && <div className={`overlay ${activePlayer}`}></div>}
-            <button onClick={() => playVideo()}>Play</button>
-            <button onClick={() => pauseVideo()}>Pause</button>
+            {/* controls */}
+            {
+                started &&
+                <Controls
+                    goBack={goBack}
+                    onChange={onSeekChange}
+                    onMouseDown={onSeekDown}
+                    volume={volume}
+                    onVolumeChange={handleVolume}
+                    onMouseUp={onSeekUp}
+                    config={config}
+                    duration={playerEl?.current?.getDuration() ?? 0}
+                    onPause={() => pauseVideo()}
+                    onPlay={() => playVideo()}
+                />
+            }
+            
         </div>
     )
 }

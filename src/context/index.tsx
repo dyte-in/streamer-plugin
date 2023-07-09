@@ -15,12 +15,13 @@ const MainProvider = ({ children }: { children: any }) => {
         const dytePlugin = DytePlugin.init();
 
         // populate store
-        dytePlugin.stores.populate('player-store');
+        await dytePlugin.stores.populate('player-store');
 
         // load initial data
         const playStore = dytePlugin.stores.create('player-store');
         const url = playStore.get('url');
         const player = playStore.get('activePlayer');
+
 
         if (url) setLink(url);
         if (player) setActivePlayer(player);
@@ -30,7 +31,7 @@ const MainProvider = ({ children }: { children: any }) => {
             setLink(url);
         })
         playStore.subscribe('activePlayer', ({ activePlayer }) => {
-            setActivePlayer(activePlayer);
+            setActivePlayer(activePlayer === 'none' ? undefined: activePlayer);
         })
 
         setPlugin(dytePlugin);

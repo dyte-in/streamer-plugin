@@ -17,14 +17,11 @@ const Modal = (props: ModalProps) => {
 
   const detectInitalClick = () => {
     const internalPlayer = playerEl?.current?.getInternalPlayer();
-    console.log(internalPlayer)
     if (!internalPlayer) return;
     const win = internalPlayer._window;
     var monitor = setInterval(function(){
-      console.log('interval...')
       var elem = win.document?.activeElement;
       if(elem && elem.tagName == 'IFRAME'){
-        console.log('initial click detected')
         onClick();
         clearInterval(monitor);
       }

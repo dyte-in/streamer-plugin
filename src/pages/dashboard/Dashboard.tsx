@@ -28,8 +28,8 @@ const Dashboard = () => {
             setActivePlayer(player);
             return;
         }
+        console.log('error...')
         // TODO: handle errors
-        console.log('url did not match');  
     }
  
     return (
@@ -39,9 +39,17 @@ const Dashboard = () => {
                 <h3>Watch your favourite videos together</h3>
                 &ensp;
                 <span>
-                    <Input onKeyDown={playVideo} placeholder='Enter your video link.' icon='search' value={link} onChange={(e) => {
-                        setLink(e.target.value)
-                    }} />
+                    <Input 
+                        onKeyDown={(e) => {
+                            if (e.code === 'Enter') playVideo();
+                        }} 
+                        placeholder='Enter your video link.'
+                        icon='search'
+                        value={link}
+                        onChange={(e) => {
+                            setLink(e.target.value)
+                        }}
+                    />
                     <Button onClick={playVideo} variant='primary' icon='play' />
                 </span>
             </div>
@@ -56,3 +64,5 @@ const Dashboard = () => {
 }
 
 export default Dashboard
+
+// TODO: programatic urls
