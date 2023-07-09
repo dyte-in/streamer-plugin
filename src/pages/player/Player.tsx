@@ -24,7 +24,7 @@ const initialConfig: PlayerConfig = {
 }
 
 const Player = () => {
-    const { plugin, setLink, activePlayer, link, setActivePlayer } = useContext(MainContext);
+    const { plugin, globalConf, setLink, activePlayer, link, setActivePlayer } = useContext(MainContext);
     const playerEl = useRef<ReactPlayer>(null);
     const [config, setConfig] = useState<PlayerConfig>(initialConfig);
     const [volume, setVolume] = useState<number>(1);
@@ -35,7 +35,7 @@ const Player = () => {
     useEffect(() => {
         const store: DyteStore = plugin.stores.create('player-store');
         const remoteConfig = store.get('state');
-        if (remoteConfig) setConfig(remoteConfig);
+        if (remoteConfig) setConfig({...initialConfig, ...remoteConfig});
         store.subscribe('state', ({state}) => {
             setConfig({...config, ...state });
             if (started) {
@@ -177,8 +177,15 @@ const Player = () => {
         await plugin.stores.get('player-store').set('state', undefined);
         await plugin.stores.get('player-store').set('activePlayer', 'none');
     }
+    const handleEnded = () => {
+        if (!globalConf.loop) goBack();
+        else {
+            setConfig({...initialConfig, state: 'playing' });
+            playVideo(true);
+        }
+    }
     
-    // TODO: errors
+    // TODO: handle errors
     const handleError = (e: any) => {
         console.log(e);
     }
@@ -201,6 +208,7 @@ const Player = () => {
                 onDuration={() => {
                     setLoaded(true);
                 }}
+                onEnded={handleEnded}
                 onError={handleError}
                 controls={false}
             />

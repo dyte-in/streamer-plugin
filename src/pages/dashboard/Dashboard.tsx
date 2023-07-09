@@ -14,10 +14,10 @@ const Dashboard = () => {
     const { plugin, link, setLink, setActivePlayer } = useContext(MainContext);
     const icons = [
        {label: 'Vimeo', icon: vimeo },
-       {label: 'Twitch', icon: twitch },
-       {label: 'Facebook', icon: facebook },
        {label: 'Youtube', icon: youtube },
        {label: 'MP4', icon: mp4 },
+    //    {label: 'Twitch', icon: twitch },
+    //    {label: 'Facebook', icon: facebook },
     ]
 
     const playVideo = async () => {
@@ -47,7 +47,7 @@ const Dashboard = () => {
                         icon='search'
                         value={link}
                         onChange={(e) => {
-                            setLink(e.target.value)
+                            setLink((e?.target?.value ?? '').trim())
                         }}
                     />
                     <Button onClick={playVideo} variant='primary' icon='play' />
@@ -64,5 +64,3 @@ const Dashboard = () => {
 }
 
 export default Dashboard
-
-// TODO: programatic urls

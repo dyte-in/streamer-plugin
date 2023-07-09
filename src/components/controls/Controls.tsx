@@ -17,7 +17,7 @@ interface ControlsProps {
     goBack: any;
 }
 const Controls = (props: ControlsProps) => {
-    const { plugin } = useContext(MainContext);
+    const { globalConf } = useContext(MainContext);
     const {
         volume,
         goBack,
@@ -97,7 +97,7 @@ const Controls = (props: ControlsProps) => {
             <div className="control-time">
                 {formatTime(config.playedSeconds)} / {formatTime(duration)}
             </div>
-            <Icon onClick={goBack} className='control-icon' icon='dismiss' />
+            {!globalConf.hideBack && <Icon onClick={goBack} className='control-icon' icon='dismiss' />}
         </div>
     )
 }
