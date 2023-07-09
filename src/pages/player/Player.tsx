@@ -26,10 +26,11 @@ const initialConfig: PlayerConfig = {
 const Player = () => {
     const { setError, plugin, globalConf, setLink, activePlayer, link, setActivePlayer } = useContext(MainContext);
     const playerEl = useRef<ReactPlayer>(null);
-    const [config, setConfig] = useState<PlayerConfig>(initialConfig);
     const [volume, setVolume] = useState<number>(1);
-    const [started, setStarted] = useState<boolean>(false);
     const [loaded, setLoaded] = useState<boolean>(false);
+    const [started, setStarted] = useState<boolean>(false);
+    const [seeking, setSeeking] = useState<boolean>(false);
+    const [config, setConfig] = useState<PlayerConfig>(initialConfig);
 
     // handle remote controls
     useEffect(() => {
@@ -89,7 +90,7 @@ const Player = () => {
 
     // update config
     const handleOnProgress = (s: any) => {
-       if (!started) return;
+       if (!started || seeking) return;
         setConfig({
             ...config,
             loaded: s.loaded,
@@ -130,7 +131,7 @@ const Player = () => {
         })
     }
     const onSeekDown = (e: any) => { 
-        console.log('seek started...');
+        setSeeking(true);
     }
     const onSeekChange = (e: any) => {
         const duration = playerEl?.current?.getDuration() ?? 1;
@@ -160,6 +161,7 @@ const Player = () => {
             started,
             false,
         )
+        setSeeking(false);
     }
     const togglePlayer = () => {
         if (config.state === 'playing') pauseVideo();

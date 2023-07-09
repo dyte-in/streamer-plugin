@@ -15,7 +15,7 @@ const MainProvider = ({ children }: { children: any }) => {
     const [error, setError] = useState<string>('');
     const [plugin, setPlugin] = useState<DytePlugin>();
     const [activePlayer, setActivePlayer] = useState<PlayerType>('');
-    const [globalConf, setGlobalConf] = useState<GlobalConfig>({ loop: false, hideBack: true });
+    const [globalConf, setGlobalConf] = useState<GlobalConfig>({ loop: false, hideBack: false });
 
     const loadPlugin = async () => {
         // initialize the SDK
