@@ -11,7 +11,7 @@ import { MainContext } from '../../context';
 import { canPlay } from '../../utils/helpers';
 
 const Dashboard = () => {
-    const { plugin, link, setLink, setActivePlayer } = useContext(MainContext);
+    const { setError, plugin, link, setLink, setActivePlayer } = useContext(MainContext);
     const icons = [
        {label: 'Vimeo', icon: vimeo },
        {label: 'Youtube', icon: youtube },
@@ -28,8 +28,7 @@ const Dashboard = () => {
             setActivePlayer(player);
             return;
         }
-        console.log('error...')
-        // TODO: handle errors
+        setError('Invalid URL.');
     }
  
     return (

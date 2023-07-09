@@ -1,7 +1,7 @@
 import Icon from './icon/Icon';
 import Button from './button/Button';
 import Input from './input/Input';
-import ErrorModal from './errorModal/ErrorModal';
+import ErrorModal from './error/Error';
 import Header from './header/Header';
 
 export {

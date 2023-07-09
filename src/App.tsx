@@ -4,6 +4,7 @@ import logo from '../src/assets/logo.png'
 import { MainContext } from './context'
 import Dashboard from './pages/dashboard/Dashboard'
 import Player from './pages/player/Player'
+import { ErrorModal } from './components'
 
 const App = () => {
   const { plugin, activePlayer } = useContext(MainContext);
@@ -18,6 +19,7 @@ const App = () => {
             <p>Streamer</p>
           </div>
       }
+       <ErrorModal />
     </div>
   )
 }

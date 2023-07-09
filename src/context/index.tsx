@@ -12,8 +12,9 @@ interface GlobalConfig {
 
 const MainProvider = ({ children }: { children: any }) => {
     const [link, setLink] = useState<string>('');
-    const [activePlayer, setActivePlayer] = useState<PlayerType>('');
+    const [error, setError] = useState<string>('');
     const [plugin, setPlugin] = useState<DytePlugin>();
+    const [activePlayer, setActivePlayer] = useState<PlayerType>('');
     const [globalConf, setGlobalConf] = useState<GlobalConfig>({ loop: false, hideBack: true });
 
     const loadPlugin = async () => {
@@ -37,8 +38,7 @@ const MainProvider = ({ children }: { children: any }) => {
                 if (link) setLink(link.trim());
                 setGlobalConf({ ...globalConf, loop, hideBack });
             }
-            console.log('error...')
-            // TODO: handle errors
+            setError('Invalid URL.');
         })
 
 
@@ -65,7 +65,18 @@ const MainProvider = ({ children }: { children: any }) => {
     }, [])
 
     return (
-        <MainContext.Provider value={{ globalConf, plugin, link, setLink, activePlayer, setActivePlayer }}>
+        <MainContext.Provider 
+            value={{
+                link,
+                error,
+                plugin,
+                setLink,
+                setError,
+                globalConf,
+                activePlayer,
+                setActivePlayer 
+            }}
+        >
             {children}
         </MainContext.Provider>
     )

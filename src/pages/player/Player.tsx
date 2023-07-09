@@ -24,7 +24,7 @@ const initialConfig: PlayerConfig = {
 }
 
 const Player = () => {
-    const { plugin, globalConf, setLink, activePlayer, link, setActivePlayer } = useContext(MainContext);
+    const { setError, plugin, globalConf, setLink, activePlayer, link, setActivePlayer } = useContext(MainContext);
     const playerEl = useRef<ReactPlayer>(null);
     const [config, setConfig] = useState<PlayerConfig>(initialConfig);
     const [volume, setVolume] = useState<number>(1);
@@ -185,12 +185,15 @@ const Player = () => {
         }
     }
     
-    // TODO: handle errors
-    const handleError = (e: any) => {
-        console.log(e);
+    const handleError = () => {
+        setError('An unkown error occured.');
     }
-    // TODO: catch window unhandled rejections
-
+    useEffect(() => {
+        window.addEventListener('unhandledrejection', (e) => {
+            console.log('error: ', e);
+            setError('An unhandled rejection caused the app to crash.')
+        })
+    }, []);
     
     return (
         <div className="player">
