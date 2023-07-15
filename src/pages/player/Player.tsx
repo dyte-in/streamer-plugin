@@ -24,7 +24,7 @@ const initialConfig: PlayerConfig = {
 }
 
 const Player = () => {
-    const { setError, plugin, globalConf, setLink, activePlayer, link, setActivePlayer } = useContext(MainContext);
+    const { isRecorder, setError, plugin, globalConf, setLink, activePlayer, link, setActivePlayer } = useContext(MainContext);
     const playerEl = useRef<ReactPlayer>(null);
     const [volume, setVolume] = useState<number>(1);
     const [loaded, setLoaded] = useState<boolean>(false);
@@ -42,13 +42,17 @@ const Player = () => {
             if (started) {
                 manageSeek(state);
             }
-            manageSeek({...config, ...state});
+            manageSeek({...config, ...state}, isRecorder);
         })
 
         return () => {
             store.unsubscribe('state');
         }
     }, [started])
+
+    useEffect(() => {
+        if (isRecorder) setStarted(true);
+    }, [isRecorder])
     const manageSeek = (data: PlayerConfig, s = false, remote = true) => {
         if (!playerEl?.current) return;
         const fraction = (timeDelta(data.playedSeconds, data.lastUpdated))/playerEl.current.getDuration();

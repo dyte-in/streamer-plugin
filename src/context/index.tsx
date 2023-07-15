@@ -14,6 +14,7 @@ const MainProvider = ({ children }: { children: any }) => {
     const [link, setLink] = useState<string>('');
     const [error, setError] = useState<string>('');
     const [plugin, setPlugin] = useState<DytePlugin>();
+    const [isRecorder, setIsRecorder] = useState<boolean>(false);
     const [activePlayer, setActivePlayer] = useState<PlayerType>('');
     const [globalConf, setGlobalConf] = useState<GlobalConfig>({ loop: false, hideBack: false });
 
@@ -23,6 +24,10 @@ const MainProvider = ({ children }: { children: any }) => {
 
         // populate store
         await dytePlugin.stores.populate('player-store');
+
+        // set recorder
+        const { payload: { peer: self }} = await dytePlugin.room.getPeer();
+        setIsRecorder(self?.isRecorder || self?.isHidden)
 
         // load initial data
         const playStore = dytePlugin.stores.create('player-store');
@@ -73,6 +78,7 @@ const MainProvider = ({ children }: { children: any }) => {
                 setLink,
                 setError,
                 globalConf,
+                isRecorder,
                 activePlayer,
                 setActivePlayer 
             }}
