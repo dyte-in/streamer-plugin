@@ -48,14 +48,14 @@ const MainProvider = ({ children }: { children: any }) => {
 
 
         if (url) setLink(url);
-        if (player) setActivePlayer(player);
+        if (player) setActivePlayer(player === 'none' ? undefined : player);
     
         // subscribe to store changes
         playStore.subscribe('url', ({ url }) => {
             setLink(url);
         })
         playStore.subscribe('activePlayer', ({ activePlayer }) => {
-            setActivePlayer(activePlayer === 'none' ? undefined: activePlayer);
+            setActivePlayer(activePlayer === 'none' ? undefined : activePlayer);
         })
 
         setPlugin(dytePlugin);
