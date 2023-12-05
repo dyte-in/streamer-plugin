@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-player/lib/players/YouTube.js b/node_modules/react-player/lib/players/YouTube.js
+index 2ed91d8..9857e0d 100644
+--- a/node_modules/react-player/lib/players/YouTube.js
++++ b/node_modules/react-player/lib/players/YouTube.js
+@@ -184,7 +184,7 @@ var YouTube = /*#__PURE__*/function (_Component) {
+   }, {
+     key: "getID",
+     value: function getID(url) {
+-      if (!url || url instanceof Array || MATCH_PLAYLIST.test(url)) {
++      if (!url || url instanceof Array) {
+         return null;
+       }
+ 
