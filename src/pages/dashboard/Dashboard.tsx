@@ -23,7 +23,12 @@ const Dashboard = () => {
     const playVideo = async () => {
         const player = canPlay(link)
         if (player) {
-            await plugin.stores.get('player-store').set('url', link);
+            let newLink = link;
+            if (player === 'youtube') {
+                newLink = link.split('&list');
+                setLink(newLink[0]);
+            }
+            await plugin.stores.get('player-store').set('url', newLink[0]);
             await plugin.stores.get('player-store').set('activePlayer', player);
             setActivePlayer(player);
             return;
