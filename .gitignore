@@ -24,3 +24,9 @@ dist-ssr
 *.sw?
 .env
 *.zip
+
+# Cloudflare
+.wrangler/
+.dev.vars
+wrangler.json.bak
+worker/node_modules/
