@@ -8,7 +8,7 @@ interface ModalProps {
   description: string;
   cta: string;
   onClick: any;
-  playerEl: React.RefObject<ReactPlayer>,
+  playerEl: React.RefObject<ReactPlayer | null>,
 }
 
 const Modal = (props: ModalProps) => {
